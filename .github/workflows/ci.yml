@@ -37,13 +37,14 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install "-r" <(python - <<'PY'
+          # Dump dependencies into a temporary file then install with -r
+          python - <<'PY' > deps.txt
 import tomllib,sys
 p=tomllib.load(open('pyproject.toml','rb'))
 deps=p['project'].get('dependencies',[])
 print('\n'.join(deps))
 PY
-)
+          pip install -r deps.txt
           pip install -e .
           pip install pytest pytest-django
 
@@ -92,13 +93,14 @@ PY
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install "-r" <(python - <<'PY'
+          # Dump dependencies into a temporary file then install with -r
+          python - <<'PY' > deps.txt
 import tomllib,sys
 p=tomllib.load(open('pyproject.toml','rb'))
 deps=p['project'].get('dependencies',[])
 print('\n'.join(deps))
 PY
-)
+          pip install -r deps.txt
           pip install -e .
           pip install pytest pytest-django
 
