@@ -37,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install -e .
+          pip install celery django django-environ django-tenants djangorestframework redis
           pip install pytest pytest-django
           # Diagnostics
           python -V
@@ -90,8 +90,7 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install -e .
-          pip install psycopg2-binary
+          pip install celery django django-environ django-tenants djangorestframework redis psycopg2-binary
           pip install pytest pytest-django
           # Diagnostics
           python -V
