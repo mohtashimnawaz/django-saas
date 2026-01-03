@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11, 3.12, 3.13]
+    services:
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+
+      - name: Create and activate venv
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install "-r" <(python - <<'PY'
+import tomllib,sys
+p=tomllib.load(open('pyproject.toml','rb'))
+deps=p['project'].get('dependencies',[])
+print('\n'.join(deps))
+PY
+)
+          pip install -e .
+          pip install pytest pytest-django
+
+      - name: Run migrations and tests (SQLite)
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings
+        run: |
+          source .venv/bin/activate
+          python manage.py migrate --noinput
+          python manage.py test --verbosity=2
+
+  integration-postgres:
+    runs-on: ubuntu-latest
+    needs: test
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_db
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d test_db" --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y libpq-dev
+
+      - name: Create and activate venv
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          source .venv/bin/activate
+          pip install "-r" <(python - <<'PY'
+import tomllib,sys
+p=tomllib.load(open('pyproject.toml','rb'))
+deps=p['project'].get('dependencies',[])
+print('\n'.join(deps))
+PY
+)
+          pip install -e .
+          pip install pytest pytest-django
+
+      - name: Run migrations and tests (Postgres)
+        env:
+          DJANGO_SETTINGS_MODULE: core.settings
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/test_db
+        run: |
+          source .venv/bin/activate
+          # install dj-database-url for DATABASE_URL parsing if needed
+          pip install dj-database-url
+          python manage.py migrate --noinput
+          python manage.py test --verbosity=2
