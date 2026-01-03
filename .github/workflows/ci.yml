@@ -37,8 +37,13 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install celery django django-environ django-tenants djangorestframework redis
           pip install -e .
+          pip install pytest pytest-django
+          # Diagnostics
+          python -V
+          python -m pip --version
+          pip list
+          python -m pip check || true
 
       - name: Run migrations and tests (SQLite)
         env:
@@ -85,8 +90,14 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          pip install celery django django-environ django-tenants djangorestframework redis psycopg2-binary
           pip install -e .
+          pip install psycopg2-binary
+          pip install pytest pytest-django
+          # Diagnostics
+          python -V
+          python -m pip --version
+          pip list
+          python -m pip check || true
 
       - name: Run migrations and tests (Postgres)
         env:
