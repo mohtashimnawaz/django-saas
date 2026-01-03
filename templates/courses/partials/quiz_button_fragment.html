@@ -1,0 +1,4 @@
+<div id="quiz-button-{{ quiz.lesson.pk }}">
+  <div class="badge bg-info">Queued</div>
+  <div hx-get="{% url 'courses:quiz_status' quiz.pk %}" hx-trigger="every 3s" hx-swap="outerHTML"></div>
+</div>

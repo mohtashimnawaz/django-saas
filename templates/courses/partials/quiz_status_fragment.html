@@ -1,0 +1,11 @@
+<div id="quiz-button-{{ quiz.lesson.pk }}">
+  {% if quiz.status == 'completed' %}
+    <a href="#" class="btn btn-success">View Quiz</a>
+  {% elif quiz.status in ['queued','generating'] %}
+    <div class="spinner-border"></div> Generating...
+  {% elif quiz.status == 'failed' %}
+    <div class="text-danger">Failed. <button hx-post="{% url 'courses:generate_quiz' quiz.lesson.pk %}" hx-swap="outerHTML">Retry</button></div>
+  {% else %}
+    <div class="badge bg-secondary">{{ quiz.status }}</div>
+  {% endif %}
+</div>
