@@ -37,16 +37,8 @@ jobs:
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          # Dump dependencies into a temporary file then install with -r
-          python - <<'PY' > deps.txt
-import tomllib,sys
-p=tomllib.load(open('pyproject.toml','rb'))
-deps=p['project'].get('dependencies',[])
-print('\n'.join(deps))
-PY
-          pip install -r deps.txt
+          pip install celery django django-environ django-tenants djangorestframework redis
           pip install -e .
-          pip install pytest pytest-django
 
       - name: Run migrations and tests (SQLite)
         env:
@@ -93,16 +85,8 @@ PY
       - name: Install dependencies
         run: |
           source .venv/bin/activate
-          # Dump dependencies into a temporary file then install with -r
-          python - <<'PY' > deps.txt
-import tomllib,sys
-p=tomllib.load(open('pyproject.toml','rb'))
-deps=p['project'].get('dependencies',[])
-print('\n'.join(deps))
-PY
-          pip install -r deps.txt
+          pip install celery django django-environ django-tenants djangorestframework redis psycopg2-binary
           pip install -e .
-          pip install pytest pytest-django
 
       - name: Run migrations and tests (Postgres)
         env:
